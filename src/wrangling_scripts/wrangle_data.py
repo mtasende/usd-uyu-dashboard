@@ -3,9 +3,32 @@ import datetime as dt
 import src.data.world_bank as wb
 import src.data.preprocessing as pp
 import plotly.figure_factory as ff
-import numpy as np
+import os
+from pathlib import Path
+import pandas as pd
 
 START_DATE = 1960
+
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = str(Path(MODULE_DIR).parent.parent)
+DATA_DIR = os.path.join(ROOT_DIR, 'data')
+DATA_RAW = os.path.join(DATA_DIR, 'raw')
+DATA_INTERIM = os.path.join(DATA_DIR, 'interim')
+DATA_EXTERNAL = os.path.join(DATA_DIR, 'external')
+DATA_PROCESSED = os.path.join(DATA_DIR, 'processed')
+
+PLOT_DATA = os.path.join(DATA_PROCESSED, 'plot_data.pkl')
+
+
+def get_the_data(end_date, save=False):
+    cpi = wb.download_cpis(['uy', 'us'], end_date=end_date)
+    rate = wb.download_exchange_rate('uy', end_date=end_date)
+    data = pp.causal_estimation(cpi, rate)
+
+    if save:
+        data.to_pickle(PLOT_DATA)
+
+    return data
 
 
 def return_figures():
@@ -21,12 +44,17 @@ def return_figures():
 
     end_date = dt.datetime.now().year
 
-    cpi = wb.download_cpis(['uy', 'us'], end_date=end_date)
-    rate = wb.download_exchange_rate('uy', end_date=end_date)
-    data = pp.causal_estimation(cpi, rate)
+    if os.path.exists(PLOT_DATA):
+        print('Found the saved data.')
+        data = pd.read_pickle(PLOT_DATA)
+        if data.index[-1] < end_date - 1:
+            print('The data is outdated. Downloading...')
+            data = get_the_data(end_date, save=True)
+    else:
+        print('Data not found. Downloading...')
+        data = get_the_data(end_date, save=True)
 
     # First chart plots USD/UYU and Causal Estimations
-
     graph_one = list()
     graph_one.append(
         go.Scatter(
@@ -128,32 +156,50 @@ def return_figures():
                         )
 
     # Fourth chart shows the relative error histogram and pdf.
-    graph_four = list()
+    group_labels = ['Relative Error']
 
-    '''graph_four.append(
-        go.Histogram(
-            x=data.relative_error.values.tolist(),
-            histnorm='probability',
-        )
-    )'''
-    x = np.random.randn(1000)
-    hist_data = [x]
-    group_labels = ['distplot']
+    fig = ff.create_distplot([data.relative_error.values.tolist()],
+                             group_labels,
+                             bin_size=.05,
+                             histnorm='probability')
 
-    fig = ff.create_distplot(hist_data, group_labels)
-    graph_four.append(fig.data)
-    layout_four = fig.layout
-
-    '''layout_four = dict(title='Relative Error Normalized Histogram',
-                       xaxis=dict(title='Relative Error'),
-                       )'''
+    layout_four = dict(title='Relative Error Normalized Histogram',
+                       xaxis=dict(title='Relative Error',
+                                  range=[-0.6, 0.6]),
+                       shapes=[
+                           {
+                               'type': 'line',
+                               'x0': data.relative_error.iloc[-1],
+                               'y0': 0,
+                               'x1': data.relative_error.iloc[-1],
+                               'y1': 0.18,
+                               'line': {
+                                   'color': 'rgb(0, 0, 0)',
+                                   'width': 1,
+                               },
+                           }],
+                       annotations=[
+                           dict(
+                               x=data.relative_error.iloc[-1],
+                               y=0.18,
+                               xref='x',
+                               yref='y',
+                               text='Current Value',
+                               showarrow=True,
+                               arrowhead=7,
+                               ax=0,
+                               ay=-40
+                           )
+                       ]
+                       )
+    fig.layout.update(layout_four)
 
     # append all charts to the figures list
     figures = list()
     figures.append(dict(data=graph_one, layout=layout_one))
     figures.append(dict(data=graph_two, layout=layout_two))
     figures.append(dict(data=graph_three, layout=layout_three))
-    #figures.append(fig)
-    figures.append(dict(data=graph_four, layout=layout_four))
+    figures.append(fig)
+    #figures.append(dict(data=graph_four, layout=layout_four))
 
     return figures
