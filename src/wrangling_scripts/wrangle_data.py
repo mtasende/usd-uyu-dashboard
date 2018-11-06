@@ -1,8 +1,12 @@
-import pandas as pd
 import plotly.graph_objs as go
+import datetime as dt
+import src.data.world_bank as wb
+import src.data.preprocessing as pp
+import plotly.figure_factory as ff
+import numpy as np
 
-# Use this file to read in your data and prepare the plotly visualizations. The path to the data files are in
-# `data/file_name.csv`
+START_DATE = 1960
+
 
 def return_figures():
     """Creates four plotly visualizations
@@ -15,75 +19,141 @@ def return_figures():
 
     """
 
-    # first chart plots arable land from 1990 to 2015 in top 10 economies 
-    # as a line chart
-    
-    graph_one = []    
+    end_date = dt.datetime.now().year
+
+    cpi = wb.download_cpis(['uy', 'us'], end_date=end_date)
+    rate = wb.download_exchange_rate('uy', end_date=end_date)
+    data = pp.causal_estimation(cpi, rate)
+
+    # First chart plots USD/UYU and Causal Estimations
+
+    graph_one = list()
     graph_one.append(
-      go.Scatter(
-      x = [0, 1, 2, 3, 4, 5],
-      y = [0, 2, 4, 6, 8, 10],
-      mode = 'lines'
-      )
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.causal_estimation.values.tolist(),
+            mode='lines',
+            name='PPP Estimation'
+        )
+    )
+    graph_one.append(
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.usd_uyu.values.tolist(),
+            mode='lines',
+            name='USD/UYU Exchange Rate'
+        )
+    )
+    graph_one.append(
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.causal_est_low.values.tolist(),
+            mode='lines',
+            name='Low Estimation'
+        )
+    )
+    graph_one.append(
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.causal_est_high.values.tolist(),
+            mode='lines',
+            name='High Estimation'
+        )
     )
 
-    layout_one = dict(title = 'Chart One',
-                xaxis = dict(title = 'x-axis label'),
-                yaxis = dict(title = 'y-axis label'),
-                )
+    layout_one = dict(title='USD/UYU Exchange and PPP Estimation',
+                      xaxis=dict(title='Year'),
+                      yaxis=dict(title='USD Value in UYU'),
+                      legend=dict(x=0,
+                                  font=dict(size=10)
+                                  ),
+                      )
 
-# second chart plots ararble land for 2015 as a bar chart    
-    graph_two = []
+    # Second chart plots USD/UYU and Causal Estimations in log scale.
+    graph_two = graph_one
 
-    graph_two.append(
-      go.Bar(
-      x = ['a', 'b', 'c', 'd', 'e'],
-      y = [12, 9, 7, 5, 1],
-      )
-    )
+    layout_two = dict(title='USD/UYU Exchange and PPP Estimation ' +
+                            '(log scale)',
+                      xaxis=dict(title='Year', ),
+                      yaxis=dict(title='USD Value in UYU', type='log'),
+                      legend=dict(x=0,
+                                  y=1,
+                                  font=dict(size=10)
+                                  ),
+                      #showlegend=False,
+                      )
 
-    layout_two = dict(title = 'Chart Two',
-                xaxis = dict(title = 'x-axis label',),
-                yaxis = dict(title = 'y-axis label'),
-                )
-
-
-# third chart plots percent of population that is rural from 1990 to 2015
-    graph_three = []
+    # Third chart plots the relative error trace
+    graph_three = list()
     graph_three.append(
-      go.Scatter(
-      x = [5, 4, 3, 2, 1, 0],
-      y = [0, 2, 4, 6, 8, 10],
-      mode = 'lines'
-      )
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.relative_error.values.tolist(),
+            mode='lines',
+            name='Error'
+        )
+    )
+    graph_three.append(
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.relative_error_mean.values.tolist(),
+            mode='lines',
+            name='Mean'
+        )
+    )
+    graph_three.append(
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.relative_error_low.values.tolist(),
+            mode='lines',
+            name='Mean - 2 * Std'
+        )
+    )
+    graph_three.append(
+        go.Scatter(
+            x=data.index.values.tolist(),
+            y=data.relative_error_high.values.tolist(),
+            mode='lines',
+            name='Mean + 2 * Std'
+        )
     )
 
-    layout_three = dict(title = 'Chart Three',
-                xaxis = dict(title = 'x-axis label'),
-                yaxis = dict(title = 'y-axis label')
-                       )
-    
-# fourth chart shows rural population vs arable land
-    graph_four = []
-    
-    graph_four.append(
-      go.Scatter(
-      x = [20, 40, 60, 80],
-      y = [10, 20, 30, 40],
-      mode = 'markers'
-      )
-    )
+    layout_three = dict(title='Relative Error Trace',
+                        xaxis=dict(title='Year'),
+                        yaxis=dict(title='Relative Error'),
+                        legend=dict(x=0,
+                                    y=1.2,
+                                    font=dict(size=10)
+                                    ),
+                        )
 
-    layout_four = dict(title = 'Chart Four',
-                xaxis = dict(title = 'x-axis label'),
-                yaxis = dict(title = 'y-axis label'),
-                )
-    
+    # Fourth chart shows the relative error histogram and pdf.
+    graph_four = list()
+
+    '''graph_four.append(
+        go.Histogram(
+            x=data.relative_error.values.tolist(),
+            histnorm='probability',
+        )
+    )'''
+    x = np.random.randn(1000)
+    hist_data = [x]
+    group_labels = ['distplot']
+
+    fig = ff.create_distplot(hist_data, group_labels)
+    graph_four.append(fig.data)
+    layout_four = fig.layout
+
+    '''layout_four = dict(title='Relative Error Normalized Histogram',
+                       xaxis=dict(title='Relative Error'),
+                       )'''
+
     # append all charts to the figures list
-    figures = []
+    figures = list()
     figures.append(dict(data=graph_one, layout=layout_one))
     figures.append(dict(data=graph_two, layout=layout_two))
     figures.append(dict(data=graph_three, layout=layout_three))
+    #figures.append(fig)
     figures.append(dict(data=graph_four, layout=layout_four))
 
     return figures
