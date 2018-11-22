@@ -3,6 +3,8 @@ usd-uyu-dashboard
 
 Automatic dashboard to track the USD/UYU pair.
 
+The web app was deployed [here](https://usd-uyu-dashboard.herokuapp.com/)
+
 Project Organization
 ------------
 
