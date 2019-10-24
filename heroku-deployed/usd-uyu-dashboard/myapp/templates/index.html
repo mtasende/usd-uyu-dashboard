@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>USD-UYU Exchange Rate and PPP Estimation</title>
+
+<!--import script files needed from plotly and bootstrap-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+</head>
+
+<body>
+
+<!--navbar links-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+   <a class="navbar-brand" href="#">USD - UYU Exchange Rate and PPP Estimation</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse"
+  data-target="#navbarTogglerDemo02"
+  aria-controls="navbarTogglerDemo02" aria-expanded="false"
+  aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+      <li class="nav-item">
+        <a class="nav-link" href="https://data.worldbank.org">World Bank Data</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/mtasende/usd-uyu-dashboard">This Project Source Code</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<!--middle section-->
+<div class="row">
+
+    <!--social media buttons column-->
+    <div class="col-1 border-right">
+        <div id="follow-me" class="mt-3">
+            <a href="https://www.linkedin.com/in/miguel-tasende-bracco-0b592819/">
+                <img src="/static/img/linkedinlogo.png" alt="linkedin" class="img-fluid mb-4 ml-2">
+            </a>
+            <a href="https://github.com/mtasende">
+                <img src="/static/img/githublogo.png" alt="github" class="img-fluid ml-2">
+            </a>
+        </div>
+    </div>
+
+    <div id="middle-info" class="mt-3">
+      <h2 id="tag-line1">Exchange Rate Dashboard</h2>
+      <h4 id="tag-line2" class="text-muted">USD/UYU and PPP Estimation. Yearly updated.</h4>
+    </div>
+
+    <!--visualizations column-->
+    <div class="col-11">
+
+        <!--charts-->
+        <div id="charts" class="container mt-3 text-center">
+
+            <!--top two charts-->
+            <div class="row">
+                <div class="col-12">
+                    <div id="{{ids[0]}}"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div id="{{ids[1]}}"></div>
+                </div>
+            </div>
+
+            <!--bottom two charts-->
+            <div class="row mb-6">
+                <div class="col-6">
+                    <div id="chart3">
+                        <div id="{{ids[2]}}"></div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div id="chart4">
+                        <div id="{{ids[3]}}"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!--chart descriptions-->
+        <div id="middle-info" class="mt-3">
+
+            <p> The charts show the USD/UYU exchange rate and some estimations
+              of what the value would be, according to the Parity Purchase Power (PPP)
+              theory. All the estimations were calculated in a causal manner. Never
+              data from "the future" is used to calculate an estimation for the present.
+              No predictions are made, only present estimations.</p>
+            <p> The PPP estimation was calculated according to the formula below:</p>
+            <img src="/static/img/eq1.png" alt="eq1" class="img-fluid">
+            <p>Where a(t) is calculated expansively, as the mean,
+              for all the past values, of the quotient of the theoretical and
+              experimental values. The formula can be seen below:</p>
+            <img src="/static/img/eq2.png" alt="eq2" class="img-fluid">
+             <p>After getting the estimation, the relative error was calculated.
+             The mean and standard deviation of that relative error were also calculated
+             using expanding functions (always respecting causality). The "low estimation"
+             and "high estimation" are calculated by adding a relative error equal
+             to the mean relative error plus/minus 2 standard deviations,
+             to the original estimation. The formulas are below:</p>
+             <br><br>
+             <img src="/static/img/eq3.png" alt="eq3" class="img-fluid">
+             <br><br>
+             <img src="/static/img/eq4.png" alt="eq4" class="img-fluid">
+             <br><br>
+             <img src="/static/img/eq5.png" alt="eq5" class="img-fluid">
+             <br><br>
+             <img src="/static/img/eq6.png" alt="eq6" class="img-fluid">
+             <br><br>
+             <img src="/static/img/eq7.png" alt="eq7" class="img-fluid">
+             <br><br>
+             <img src="/static/img/eq8.png" alt="eq8" class="img-fluid">
+             <br><br>
+             <img src="/static/img/eq9.png" alt="eq9" class="img-fluid">
+             <br><br>
+
+             <p>Finally, the charts of the relative error, its mean, high and low
+              estimations, are also shown (the trace and a normalized histogram).</p>
+        </div>
+
+    </div>
+</div>
+
+<!--footer section-->
+<div id="footer" class="container"></div>
+
+</body>
+
+
+<footer>
+
+    <script type="text/javascript">
+        // plots the figure with id
+        // id much match the div id above in the html
+        var figures = {{figuresJSON | safe}};
+        var ids = {{ids | safe}};
+        for(var i in figures) {
+            Plotly.plot(ids[i],
+                figures[i].data,
+                figures[i].layout || {});
+        }
+    </script>
+
+</footer>
+
+
+</html>

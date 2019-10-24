@@ -1,0 +1,29 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[autostyle=false]{csquotes}
+\MakeOuterQuote{"}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage[blocks]{authblk}
+
+\begin{document}
+$$rate_{usd/uyu} \approx a(t) \times \frac{CPI_{uy}(t)}{CPI_{us}(t)}$$
+
+$$a(t) = \frac{1}{t} \cdot \sum_{s=0}^{s=t} rate_{usd/uyu}(s) \times \frac{CPI_{us}(s)}{CPI_{uy}(s)}$$
+
+$$relativeError(t) = \frac{rate_{usd/uyu}(t) - estimation_{PPP}(t)}{estimation_{PPP}(t)}$$
+
+$$meanRelativeError(t) = expandingMean(relativeError(t))$$
+
+$$stdRelativeError(t) = expandingStd(relativeError(t))$$
+
+$$relativeErrorHigh(t) = meanRelativeError(t) + 2 \times stdRelativeError(t)$$
+
+$$relativeErrorLow(t) = meanRelativeError(t) - 2 \times stdRelativeError(t)$$
+
+$$estimationHigh(t) = estimation_{PPP}(t) \times (1 + relativeErrorHigh(t))$$
+
+$$estimationLow(t) = estimation_{PPP}(t) \times (1 + relativeErrorLow(t))$$
+
+\end{document}
